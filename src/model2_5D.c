@@ -25,39 +25,37 @@
 
 #include "fd.h"
 
-void model2_5(float  ***  rho, float ***  pi, float ***  u, 
-float ***  taus, float ***  taup){
+void model2_5(float*** rho, float*** pi, float*** u,
+    float*** taus, float*** taup) {
 
-	/*--------------------------------------------------------------------------*/
-	/* extern variables */
+  /*--------------------------------------------------------------------------*/
+  /* extern variables */
 
-	extern int NXG, NYG, NZG,L;
-	/*extern FILE *FP;*/
-	
-	float ts, tp, muv, Rho, piv;
+  extern int NXG, NYG, NZG, L;
+  /*extern FILE *FP;*/
 
+  float ts, tp, muv, Rho, piv;
 
-	int i, j, k;
+  int i, j, k;
 
-		for (j=1;j<=NYG;j++){
-		      	for (i=1;i<=NXG;i++){
-				if(L){
-					ts=taus[j][i][100];
-					tp=taup[j][i][100];
-				}
-				muv=u[j][i][100];
-				Rho=rho[j][i][100];
-				piv=pi[j][i][100];
-				for (k=1;k<=NZG;k++){
-					if(L){
-						taus[j][i][k]=ts;
-						taup[j][i][k]=tp;
-					}	
-					u[j][i][k]=muv;
-					rho[j][i][k]=Rho;
-					pi[j][i][k]=piv;
-				}
-			}		
-		}
+  for (j = 1; j <= NYG; j++) {
+    for (i = 1; i <= NXG; i++) {
+      if (L) {
+        ts = taus[j][i][100];
+        tp = taup[j][i][100];
+      }
+      muv = u[j][i][100];
+      Rho = rho[j][i][100];
+      piv = pi[j][i][100];
+      for (k = 1; k <= NZG; k++) {
+        if (L) {
+          taus[j][i][k] = ts;
+          taup[j][i][k] = tp;
+        }
+        u[j][i][k] = muv;
+        rho[j][i][k] = Rho;
+        pi[j][i][k] = piv;
+      }
+    }
+  }
 }
-

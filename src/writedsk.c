@@ -30,30 +30,28 @@ format=2  :  ASCII
 format=3  :  BINARY (IEEE)
 */
 
+void writedsk(FILE *fp_out, float amp, int format) {
+  extern FILE *FP;
 
-void writedsk(FILE *fp_out, float amp, int format){
-extern FILE *FP;
+  switch (format) {
+    case 1: /* SU*/
+      err(" Sorry, SU-format for snapshots not implemented yet. \n");
+      break;
+    case 2: /*ASCII*/
+      fprintf(fp_out, "%e\n", amp);
+      break;
+    case 3: /* BINARY */
+      fwrite(&amp, sizeof(float), 1, fp_out);
 
+      break;
 
-	switch(format){
-                case 1 : /* SU*/ 
-                        err(" Sorry, SU-format for snapshots not implemented yet. \n");
-                        break;
-		case 2 :  /*ASCII*/
-                        fprintf(fp_out,"%e\n", amp); 
-                        break;
-		case 3 :   /* BINARY */
-fwrite(&amp, sizeof(float), 1, fp_out);
-			
-              		break;
-			
-		case 4 :   /* BINARY Gradient*/
+    case 4: /* BINARY Gradient*/
 
-			fwrite(&amp, sizeof(float), 1, fp_out);
-              		break;	
-	                
-		default :
-			fprintf(FP," Don't know the format for the snapshot-data !\n");
-			err(" No output was written. ");
-	}
+      fwrite(&amp, sizeof(float), 1, fp_out);
+      break;
+
+    default:
+      fprintf(FP, " Don't know the format for the snapshot-data !\n");
+      err(" No output was written. ");
+  }
 }

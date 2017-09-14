@@ -25,55 +25,53 @@
 #include "fd.h"
 #include "segy.h"
 
-void  output_source_signal(FILE *fp, float **signals, int ns, int seis_form){
+void output_source_signal(FILE *fp, float **signals, int ns, int seis_form) {
 
-	/* declaration of extern variables */
-	extern float DT;
-	extern int NDT;
-	
-	/* declaration of local variables */
-	int i,j, ntr=1;
-	segy tr;
-	int tracl ;
-	
-	
-	
-	switch(seis_form){
-	case 1 :
-		for(tracl=1;tracl<=ntr;tracl++){        /*SEGY (without file-header)*/
-         		
-			tr.tracl=tracl;     
-			tr.trid=(short)1;           /* trace identification code: 1=seismic*/
-			
-			tr.ns=(unsigned short)iround(ns/NDT); /* number of samples in this trace */
-			tr.dt=(unsigned short)iround(((float)NDT*DT)*1.0e6); /* sample interval in micro-seconds */
-			tr.d1=(float)NDT*DT;        /* sample spacing for non-seismic data */
+  /* declaration of extern variables */
+  extern float DT;
+  extern int NDT;
 
-			for(j=1;j<=tr.ns;j++) tr.data[j]=signals[tracl][j*NDT];
+  /* declaration of local variables */
+  int i, j, ntr = 1;
+  segy tr;
+  int tracl;
 
-			fwrite(&tr,240,1,fp);
-			fwrite(&tr.data[1],4,tr.ns,fp);
-		}
-		break;
+  switch (seis_form) {
+    case 1:
+      for (tracl = 1; tracl <= ntr; tracl++) { /*SEGY (without file-header)*/
 
+        tr.tracl = tracl;
+        tr.trid = (short)1; /* trace identification code: 1=seismic*/
 
-	case 2 :
-		for(i=1;i<=ntr;i++){         /*ASCII ONE COLUMN*/
-			for(j=1;j<=ns;j+=NDT) fprintf(fp,"%e\n", signals[i][j]);
-		}
-		break;
+        tr.ns = (unsigned short)iround(ns / NDT); /* number of samples in this trace */
+        tr.dt = (unsigned short)iround(((float)NDT * DT) * 1.0e6); /* sample interval in micro-seconds */
+        tr.d1 = (float)NDT * DT; /* sample spacing for non-seismic data */
 
-	case 3 :                             /*BINARY */
+        for (j = 1; j <= tr.ns; j++) tr.data[j] = signals[tracl][j * NDT];
 
-		for(i=1;i<=ntr;i++)
-			for(j=1;j<=ns;j+=NDT){
-				fwrite(&signals[i][j],sizeof(float),1,fp); }
-		break;
+        fwrite(&tr, 240, 1, fp);
+        fwrite(&tr.data[1], 4, tr.ns, fp);
+      }
+      break;
 
-	default :
-		fprintf(stdout," Message from output_source_signal: Don't know data format for seismograms !\n");
-		fprintf(stdout," No output written. ");
-	}
+    case 2:
+      for (i = 1; i <= ntr; i++) { /*ASCII ONE COLUMN*/
+        for (j = 1; j <= ns; j += NDT) fprintf(fp, "%e\n", signals[i][j]);
+      }
+      break;
 
-	fclose(fp);
+    case 3: /*BINARY */
+
+      for (i = 1; i <= ntr; i++)
+        for (j = 1; j <= ns; j += NDT) {
+          fwrite(&signals[i][j], sizeof(float), 1, fp);
+        }
+      break;
+
+    default:
+      fprintf(stdout, " Message from output_source_signal: Don't know data format for seismograms !\n");
+      fprintf(stdout, " No output written. ");
+  }
+
+  fclose(fp);
 }

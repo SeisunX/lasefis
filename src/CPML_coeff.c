@@ -84,244 +84,274 @@
 
 #include "fd.h"
 
-void CPML_coeff(float * K_x, float * alpha_prime_x, float * a_x, float * b_x, 
-            float * K_x_half, float * alpha_prime_x_half, float * a_x_half, float * b_x_half,
-            float * K_y, float * alpha_prime_y, float * a_y, float * b_y, 
-            float * K_y_half, float * alpha_prime_y_half, float * a_y_half, float * b_y_half,
-            float * K_z, float * alpha_prime_z, float * a_z, float * b_z, 
-            float * K_z_half, float * alpha_prime_z_half, float * a_z_half, float * b_z_half)
-{
+void CPML_coeff(float *K_x, float *alpha_prime_x, float *a_x, float *b_x,
+    float *K_x_half, float *alpha_prime_x_half, float *a_x_half, float *b_x_half,
+    float *K_y, float *alpha_prime_y, float *a_y, float *b_y,
+    float *K_y_half, float *alpha_prime_y_half, float *a_y_half, float *b_y_half,
+    float *K_z, float *alpha_prime_z, float *a_z, float *b_z,
+    float *K_z_half, float *alpha_prime_z_half, float *a_z_half, float *b_z_half) {
 
-	extern float DX, DY, DZ , VPPML, DT, FPML;
-	extern int FW;
-	extern FILE *FP;
-	
-	int i, l,i1;
-	      
-      float * d_x=NULL,* d_x_half=NULL,* d_y=NULL,* d_y_half=NULL,* d_z=NULL,* d_z_half=NULL;
-      
-      const float npower = 3;  /*  power to compute d0 profile */
-      const float k_max_PML = 2.0;   /* (from Gedney page 8.11) */
-      const float alpha_max_PML = 2.0 * PI * (FPML/2.0);   /* from festa and Vilotte 2.0*...*/
-      const float Rcoef = 0.0008;       /* reflection coefficient (INRIA report section 6.1) */
-      const float a = 0.25, b = 0.75 , c = 0.0; 
-      float d0_x, d0_y, d0_z, position_norm, position_in_PML;
+  extern float DX, DY, DZ, VPPML, DT, FPML;
+  extern int FW;
+  extern FILE *FP;
 
-      d_x = vector(1,2*FW);
-      d_x_half = vector(1,2*FW);
-      d_y = vector(1,2*FW);
-      d_y_half = vector(1,2*FW);
-      d_z = vector(1,2*FW);
-      d_z_half = vector(1,2*FW);
-     
-      /* compute d0 from INRIA report section 6.1 */
-      d0_x = - (npower + 1) * VPPML * log(Rcoef) / (2.0 * FW*DX);
-      d0_y = - (npower + 1) * VPPML * log(Rcoef) / (2.0 * FW*DY);
-      d0_z = - (npower + 1) * VPPML * log(Rcoef) / (2.0 * FW*DZ);
+  int i, l, i1;
 
+  float *d_x = NULL, *d_x_half = NULL, *d_y = NULL, *d_y_half = NULL, *d_z = NULL, *d_z_half = NULL;
 
-	
-      /* damping in the X direction */
-      /* -------------------------- */
+  const float npower = 3; /*  power to compute d0 profile */
+  const float k_max_PML = 2.0; /* (from Gedney page 8.11) */
+  const float alpha_max_PML = 2.0 * PI * (FPML / 2.0); /* from festa and Vilotte 2.0*...*/
+  const float Rcoef = 0.0008; /* reflection coefficient (INRIA report section 6.1) */
+  const float a = 0.25, b = 0.75, c = 0.0;
+  float d0_x, d0_y, d0_z, position_norm, position_in_PML;
 
-   	for (i=1;i<=FW+1;i++){
-	
-        K_x[i] = 1.0;
+  d_x = vector(1, 2 * FW);
+  d_x_half = vector(1, 2 * FW);
+  d_y = vector(1, 2 * FW);
+  d_y_half = vector(1, 2 * FW);
+  d_z = vector(1, 2 * FW);
+  d_z_half = vector(1, 2 * FW);
 
-        /* define damping profile at the grid points */
-        position_in_PML = (FW-i+1)*DX; /*distance to boundary in meter */
-        position_norm = position_in_PML / (FW*DX); /*normalised by PML thickness*/
+  /* compute d0 from INRIA report section 6.1 */
+  d0_x = -(npower + 1) * VPPML * log(Rcoef) / (2.0 * FW * DX);
+  d0_y = -(npower + 1) * VPPML * log(Rcoef) / (2.0 * FW * DY);
+  d0_z = -(npower + 1) * VPPML * log(Rcoef) / (2.0 * FW * DZ);
 
-        d_x[i] = d0_x *(a*position_norm+b*pow(position_norm,npower)+c*pow(position_norm,(4)));
+  /* damping in the X direction */
+  /* -------------------------- */
 
-        /* this taken from Gedney page 8.2 */
-        K_x[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-        alpha_prime_x[i] = alpha_max_PML * (1.0 - position_norm);
+  for (i = 1; i <= FW + 1; i++) {
 
-	if(alpha_prime_x[i] < 0.0){ fprintf(FP,"ERROR:alpha_prime_x[i] < 0.0, i %d", i);}
-	
-	b_x[i] = exp(- (d_x[i] / K_x[i] + alpha_prime_x[i]) * DT);
+    K_x[i] = 1.0;
 
- 	/* avoid division by zero outside the PML */
-        if(abs(d_x[i]) > 1.0e-6){ a_x[i] = d_x[i] * (b_x[i] - 1.0) / (K_x[i] * (d_x[i] + K_x[i] * alpha_prime_x[i]));}
-	else a_x[i]=0.0;
-	
-	if(i<=FW){
+    /* define damping profile at the grid points */
+    position_in_PML = (FW - i + 1) * DX; /*distance to boundary in meter */
+    position_norm = position_in_PML / (FW * DX); /*normalised by PML thickness*/
 
-        /* define damping profile at half the grid points (half a grid point in -x)*/
-        position_in_PML = (FW-i+0.5) *DX;
-        position_norm = position_in_PML / (FW*DX);
+    d_x[i] = d0_x * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
 
-	i1=i;
-	
-	K_x_half[i1] = 1.0;
-        d_x_half[i1] = d0_x * (a*position_norm+b*pow(position_norm,npower)+c*pow(position_norm,(4)));
+    /* this taken from Gedney page 8.2 */
+    K_x[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+    alpha_prime_x[i] = alpha_max_PML * (1.0 - position_norm);
 
-        if(position_in_PML < 0.0) {fprintf(FP,"ERROR: Position in PML (x-boundary) smaller 0");}
-          
-        /* this taken from Gedney page 8.2 */
-        K_x_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-        alpha_prime_x_half[i1] = alpha_max_PML * (1.0 - position_norm);
-           
-        /* just in case, for -5 at the end */
-        if(alpha_prime_x_half[i1] < 0.0) {fprintf(FP,"ERROR:alpha_prime_x_half[i] < 0.0, i %d", i);}
+    if (alpha_prime_x[i] < 0.0) {
+      fprintf(FP, "ERROR:alpha_prime_x[i] < 0.0, i %d", i);
+    }
 
-        b_x_half[i1] = exp(- (d_x_half[i1] / K_x_half[i1] + alpha_prime_x_half[i1]) * DT);
+    b_x[i] = exp(-(d_x[i] / K_x[i] + alpha_prime_x[i]) * DT);
 
-        if(abs(d_x_half[i1]) > 1.0e-6){ a_x_half[i1] = d_x_half[i1] * (b_x_half[i1] - 1.0) / (K_x_half[i1] * (d_x_half[i1] + K_x_half[i1] * alpha_prime_x_half[i1]));}
+    /* avoid division by zero outside the PML */
+    if (abs(d_x[i]) > 1.0e-6) {
+      a_x[i] = d_x[i] * (b_x[i] - 1.0) / (K_x[i] * (d_x[i] + K_x[i] * alpha_prime_x[i]));
+    } else
+      a_x[i] = 0.0;
 
-	/* right boundary --> mirroring left boundary*/
-	
-	l = 2* FW -i+1;
+    if (i <= FW) {
 
-	if(i>1){
-	K_x[l+1]=K_x[i];
-	b_x[l+1] = b_x[i];
-	if(abs(d_x[i]) > 1.0e-6){ a_x[l+1] = a_x[i]; }
-	}
+      /* define damping profile at half the grid points (half a grid point in -x)*/
+      position_in_PML = (FW - i + 0.5) * DX;
+      position_norm = position_in_PML / (FW * DX);
 
-	K_x_half[l]=K_x_half[i];
-        b_x_half[l] = b_x_half[i];  /*half a grid point in +x)*/
-        if(abs(d_x[i]) > 1.0e-6){ a_x_half[l] = a_x_half[i]; }
+      i1 = i;
 
-        } 
-	}
+      K_x_half[i1] = 1.0;
+      d_x_half[i1] = d0_x * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
 
+      if (position_in_PML < 0.0) {
+        fprintf(FP, "ERROR: Position in PML (x-boundary) smaller 0");
+      }
 
+      /* this taken from Gedney page 8.2 */
+      K_x_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+      alpha_prime_x_half[i1] = alpha_max_PML * (1.0 - position_norm);
 
-      /* damping in the Y direction */
-      /* -------------------------- */
+      /* just in case, for -5 at the end */
+      if (alpha_prime_x_half[i1] < 0.0) {
+        fprintf(FP, "ERROR:alpha_prime_x_half[i] < 0.0, i %d", i);
+      }
 
-        for (i=1;i<=FW+1;i++){
-	
-        K_y[i] = 1.0; 
-          
-        /* define damping profile at the grid points */
-        position_in_PML = (FW-i+1)*DY; /*distance to boundary in meter */
-        position_norm = position_in_PML / (FW*DY); /*normalised by PML thickness*/
+      b_x_half[i1] = exp(-(d_x_half[i1] / K_x_half[i1] + alpha_prime_x_half[i1]) * DT);
 
-        d_y[i] = d0_y * (a*position_norm+b*pow(position_norm,npower)+c*pow(position_norm,(4)));
+      if (abs(d_x_half[i1]) > 1.0e-6) {
+        a_x_half[i1] = d_x_half[i1] * (b_x_half[i1] - 1.0) / (K_x_half[i1] * (d_x_half[i1] + K_x_half[i1] * alpha_prime_x_half[i1]));
+      }
 
-        /* this taken from Gedney page 8.2 */
-        K_y[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-        alpha_prime_y[i] = alpha_max_PML * (1.0 - position_norm);
+      /* right boundary --> mirroring left boundary*/
 
-	/* just in case, for -5 at the end */
-        if(alpha_prime_y[i] < 0.0){ fprintf(FP,"ERROR:alpha_prime_y[i] < 0.0, i %d", i);}
+      l = 2 * FW - i + 1;
 
-	b_y[i] = exp(- (d_y[i] / K_y[i] + alpha_prime_y[i]) * DT);
+      if (i > 1) {
+        K_x[l + 1] = K_x[i];
+        b_x[l + 1] = b_x[i];
+        if (abs(d_x[i]) > 1.0e-6) {
+          a_x[l + 1] = a_x[i];
+        }
+      }
 
- 	/* avoid division by zero outside the PML */
-        if(abs(d_y[i]) > 1.0e-6){ a_y[i] = d_y[i] * (b_y[i] - 1.0) / (K_y[i] * (d_y[i] + K_y[i] * alpha_prime_y[i]));}
-      	else a_x[i]=0.0;
+      K_x_half[l] = K_x_half[i];
+      b_x_half[l] = b_x_half[i]; /*half a grid point in +x)*/
+      if (abs(d_x[i]) > 1.0e-6) {
+        a_x_half[l] = a_x_half[i];
+      }
+    }
+  }
 
-	if(i<=FW){
+  /* damping in the Y direction */
+  /* -------------------------- */
 
-          /* define damping profile at half the grid points (half a grid point in -x)*/
-        position_in_PML = (FW-i+0.5) *DY;
-        position_norm = position_in_PML / (FW*DY);
+  for (i = 1; i <= FW + 1; i++) {
 
-	i1=i;
-	K_y_half[i1] = 1.0;
-        d_y_half[i1] = d0_y * (a*position_norm+b*pow(position_norm,npower)+c*pow(position_norm,(4)));
+    K_y[i] = 1.0;
 
-        if(position_in_PML < 0.0) {fprintf(FP,"ERROR: Position in PML (y-boundary) <0");}
-          
-        /* this taken from Gedney page 8.2 */
-        K_y_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-        alpha_prime_y_half[i1] = alpha_max_PML * (1.0 - position_norm);
-      
-        if(alpha_prime_y_half[i1] < 0.0) {fprintf(FP,"ERROR:alpha_prime_y_half[i] < 0.0, i %d", i);}
-        b_y_half[i1] = exp(- (d_y_half[i1] / K_y_half[i1] + alpha_prime_y_half[i1]) * DT);
-          
-      	if(abs(d_y_half[i1]) > 1.0e-6){ a_y_half[i1] = d_y_half[i1] * (b_y_half[i1] - 1.0) / (K_y_half[i1] * (d_y_half[i1] + K_y_half[i1] * alpha_prime_y_half[i1]));}
-	
-        /* right boundary --> mirroring left boundary*/
-        l = 2* FW -i+1;
-	
-	if(i>1){
-	K_y[l+1] = K_y[i];
-	b_y[l+1] = b_y[i];
-	if(abs(d_y[i]) > 1.0e-6){ a_y[l+1] = a_y[i]; }
-	}
-  
-	
-	K_y_half[l]=K_y_half[i];
-        b_y_half[l] = b_y_half[i];  /*half a grid point in +x)*/ 
-        if(abs(d_y[i]) > 1.0e-6){ a_y_half[l] = a_y_half[i]; }
-	}
-        } 
+    /* define damping profile at the grid points */
+    position_in_PML = (FW - i + 1) * DY; /*distance to boundary in meter */
+    position_norm = position_in_PML / (FW * DY); /*normalised by PML thickness*/
 
+    d_y[i] = d0_y * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
 
-       /* damping in the Z direction */
-      /* -------------------------- */
+    /* this taken from Gedney page 8.2 */
+    K_y[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+    alpha_prime_y[i] = alpha_max_PML * (1.0 - position_norm);
 
-	for (i=1;i<=FW+1;i++){
-	
-        K_z[i] = 1.0;
-                    
-    	/* define damping profile at the grid points */
-      	position_in_PML = (FW-i+1)*DZ; /*distance to boundary in meter */
-      	position_norm = position_in_PML / (FW*DZ); /*normalised by PML thickness*/
+    /* just in case, for -5 at the end */
+    if (alpha_prime_y[i] < 0.0) {
+      fprintf(FP, "ERROR:alpha_prime_y[i] < 0.0, i %d", i);
+    }
 
-      	d_z[i] = d0_z * (a*position_norm+b*pow(position_norm,npower)+c*pow(position_norm,(4)));
+    b_y[i] = exp(-(d_y[i] / K_y[i] + alpha_prime_y[i]) * DT);
 
-  	/* this taken from Gedney page 8.2 */
-    	K_z[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-    	alpha_prime_z[i] = alpha_max_PML * (1.0 - position_norm);
-           
-	/* just in case, for -5 at the end */
-    	if(alpha_prime_z[i] < 0.0){ fprintf(FP,"ERROR:alpha_prime_z[i] < 0.0, i %d", i);}
+    /* avoid division by zero outside the PML */
+    if (abs(d_y[i]) > 1.0e-6) {
+      a_y[i] = d_y[i] * (b_y[i] - 1.0) / (K_y[i] * (d_y[i] + K_y[i] * alpha_prime_y[i]));
+    } else
+      a_x[i] = 0.0;
 
-	b_z[i] = exp(- (d_z[i] / K_z[i] + alpha_prime_z[i]) * DT);
+    if (i <= FW) {
 
- 	/* avoid division by zero outside the PML */
-        if(abs(d_z[i]) > 1.0e-6){ a_z[i] = d_z[i] * (b_z[i] - 1.0) / (K_z[i] * (d_z[i] + K_z[i] * alpha_prime_z[i]));}
-	
-	if(i<=FW){
-    	/* define damping profile at half the grid points (half a grid point in -x)*/
-        position_in_PML = (FW-i+0.5) *DZ;
-        position_norm = position_in_PML / (FW*DZ);
+      /* define damping profile at half the grid points (half a grid point in -x)*/
+      position_in_PML = (FW - i + 0.5) * DY;
+      position_norm = position_in_PML / (FW * DY);
 
-	i1=i;
+      i1 = i;
+      K_y_half[i1] = 1.0;
+      d_y_half[i1] = d0_y * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
 
-	K_z_half[i1] = 1.0;
-        d_z_half[i1] = d0_z *(a*position_norm+b* pow(position_norm,npower)+c*pow(position_norm,(4)));
+      if (position_in_PML < 0.0) {
+        fprintf(FP, "ERROR: Position in PML (y-boundary) <0");
+      }
 
-        if(position_in_PML < 0.0) {fprintf(FP,"ERROR: Position in PML (y-boundary) <0");}
- 
-        /* this taken from Gedney page 8.2 */
-        K_z_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm,npower);
-        alpha_prime_z_half[i1] = alpha_max_PML * (1.0 - position_norm);
+      /* this taken from Gedney page 8.2 */
+      K_y_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+      alpha_prime_y_half[i1] = alpha_max_PML * (1.0 - position_norm);
 
-        if(alpha_prime_z_half[i1] < 0.0) {fprintf(FP,"ERROR:alpha_prime_z_half[i] < 0.0, i %d", i);}
- 
-        b_z_half[i1] = exp(- (d_z_half[i1] / K_z_half[i1] + alpha_prime_z_half[i1]) * DT);
+      if (alpha_prime_y_half[i1] < 0.0) {
+        fprintf(FP, "ERROR:alpha_prime_y_half[i] < 0.0, i %d", i);
+      }
+      b_y_half[i1] = exp(-(d_y_half[i1] / K_y_half[i1] + alpha_prime_y_half[i1]) * DT);
 
-        if(abs(d_z_half[i1]) > 1.0e-6){ a_z_half[i1] = d_z_half[i1] * (b_z_half[i1] - 1.0) / (K_z_half[i1] * (d_z_half[i1] + K_z_half[i1] * alpha_prime_z_half[i1]));}
-	
-        /* right boundary --> mirroring left boundary*/
-        l = 2* FW -i+1;
+      if (abs(d_y_half[i1]) > 1.0e-6) {
+        a_y_half[i1] = d_y_half[i1] * (b_y_half[i1] - 1.0) / (K_y_half[i1] * (d_y_half[i1] + K_y_half[i1] * alpha_prime_y_half[i1]));
+      }
 
-	if(i>1){
-	K_z[l+1] = K_z[i];
-	b_z[l+1] = b_z[i];
-	if(abs(d_z[i]) > 1.0e-6){ a_z[l+1] = a_z[i]; }
-	}
-	
-	
-	K_z_half[l]=K_z_half[i];
-        b_z_half[l] = b_z_half[i];  /*half a grid point in +x)*/
-        if(abs(d_z[i]) > 1.0e-6){ a_z_half[l] = a_z_half[i]; }
-	}
+      /* right boundary --> mirroring left boundary*/
+      l = 2 * FW - i + 1;
+
+      if (i > 1) {
+        K_y[l + 1] = K_y[i];
+        b_y[l + 1] = b_y[i];
+        if (abs(d_y[i]) > 1.0e-6) {
+          a_y[l + 1] = a_y[i];
+        }
+      }
+
+      K_y_half[l] = K_y_half[i];
+      b_y_half[l] = b_y_half[i]; /*half a grid point in +x)*/
+      if (abs(d_y[i]) > 1.0e-6) {
+        a_y_half[l] = a_y_half[i];
+      }
+    }
+  }
+
+  /* damping in the Z direction */
+  /* -------------------------- */
+
+  for (i = 1; i <= FW + 1; i++) {
+
+    K_z[i] = 1.0;
+
+    /* define damping profile at the grid points */
+    position_in_PML = (FW - i + 1) * DZ; /*distance to boundary in meter */
+    position_norm = position_in_PML / (FW * DZ); /*normalised by PML thickness*/
+
+    d_z[i] = d0_z * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
+
+    /* this taken from Gedney page 8.2 */
+    K_z[i] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+    alpha_prime_z[i] = alpha_max_PML * (1.0 - position_norm);
+
+    /* just in case, for -5 at the end */
+    if (alpha_prime_z[i] < 0.0) {
+      fprintf(FP, "ERROR:alpha_prime_z[i] < 0.0, i %d", i);
+    }
+
+    b_z[i] = exp(-(d_z[i] / K_z[i] + alpha_prime_z[i]) * DT);
+
+    /* avoid division by zero outside the PML */
+    if (abs(d_z[i]) > 1.0e-6) {
+      a_z[i] = d_z[i] * (b_z[i] - 1.0) / (K_z[i] * (d_z[i] + K_z[i] * alpha_prime_z[i]));
+    }
+
+    if (i <= FW) {
+      /* define damping profile at half the grid points (half a grid point in -x)*/
+      position_in_PML = (FW - i + 0.5) * DZ;
+      position_norm = position_in_PML / (FW * DZ);
+
+      i1 = i;
+
+      K_z_half[i1] = 1.0;
+      d_z_half[i1] = d0_z * (a * position_norm + b * pow(position_norm, npower) + c * pow(position_norm, (4)));
+
+      if (position_in_PML < 0.0) {
+        fprintf(FP, "ERROR: Position in PML (y-boundary) <0");
+      }
+
+      /* this taken from Gedney page 8.2 */
+      K_z_half[i1] = 1.0 + (k_max_PML - 1.0) * pow(position_norm, npower);
+      alpha_prime_z_half[i1] = alpha_max_PML * (1.0 - position_norm);
+
+      if (alpha_prime_z_half[i1] < 0.0) {
+        fprintf(FP, "ERROR:alpha_prime_z_half[i] < 0.0, i %d", i);
+      }
+
+      b_z_half[i1] = exp(-(d_z_half[i1] / K_z_half[i1] + alpha_prime_z_half[i1]) * DT);
+
+      if (abs(d_z_half[i1]) > 1.0e-6) {
+        a_z_half[i1] = d_z_half[i1] * (b_z_half[i1] - 1.0) / (K_z_half[i1] * (d_z_half[i1] + K_z_half[i1] * alpha_prime_z_half[i1]));
+      }
+
+      /* right boundary --> mirroring left boundary*/
+      l = 2 * FW - i + 1;
+
+      if (i > 1) {
+        K_z[l + 1] = K_z[i];
+        b_z[l + 1] = b_z[i];
+        if (abs(d_z[i]) > 1.0e-6) {
+          a_z[l + 1] = a_z[i];
+        }
+      }
+
+      K_z_half[l] = K_z_half[i];
+      b_z_half[l] = b_z_half[i]; /*half a grid point in +x)*/
+      if (abs(d_z[i]) > 1.0e-6) {
+        a_z_half[l] = a_z_half[i];
+      }
+    }
+  }
+  free_vector(d_x, 1, 2 * FW);
+  free_vector(d_x_half, 1, 2 * FW);
+  free_vector(d_y, 1, 2 * FW);
+  free_vector(d_y_half, 1, 2 * FW);
+  free_vector(d_z, 1, 2 * FW);
+  free_vector(d_z_half, 1, 2 * FW);
 }
-    free_vector(d_x,1,2*FW);
-    free_vector(d_x_half,1,2*FW);
-    free_vector(d_y,1,2*FW);
-    free_vector(d_y_half,1,2*FW);
-    free_vector(d_z,1,2*FW);
-    free_vector(d_z_half,1,2*FW);
-}
-
-
-

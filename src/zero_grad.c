@@ -23,19 +23,17 @@
 
 #include "fd.h"
 
-void zero_grad(int NX, int NY, int NZ, float *** grad1, float *** grad2, float *** grad3){
+void zero_grad(int NX, int NY, int NZ, float*** grad1, float*** grad2, float*** grad3) {
 
-   int i, j, k;
+  int i, j, k;
 
-    for (j=1;j<=NY;j++){
-      for (i=1;i<=NX;i++){
-	for (k=1;k<=NZ;k++){
-	  grad1[j][i][k]=0.0;
-	  grad2[j][i][k]=0.0;
-	  grad3[j][i][k]=0.0; 
-	}
+  for (j = 1; j <= NY; j++) {
+    for (i = 1; i <= NX; i++) {
+      for (k = 1; k <= NZ; k++) {
+        grad1[j][i][k] = 0.0;
+        grad2[j][i][k] = 0.0;
+        grad3[j][i][k] = 0.0;
       }
     }
-
+  }
 }
-

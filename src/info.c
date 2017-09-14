@@ -24,17 +24,17 @@
 #include "fd.h"
 
 /* printing all important parameters to FILE *fp */
-void info(FILE *fp){
+void info(FILE *fp) {
 
-	fprintf(fp," \n\n\n***********************************************************\n");
-	fprintf(fp," This is program IFOS3D.          \n");
-	fprintf(fp," 3D-Adjoint Full WAveform Inversion Tool      \n");
-	fprintf(fp," for 3D elastic FWI                                                         \n");
-	fprintf(fp," FWI code written by  S. Butzer        \n");
-	fprintf(fp," forward FD code  written by  T. Bohlen    \n");
-	fprintf(fp," Geophysical Institute, Department of Physics,         \n");
-	fprintf(fp," Institute of Technology, Karlsruhe, Germany         \n");
-	fprintf(fp," http://www.gpi.kit.edu \n");
-	fprintf(fp," ***********************************************************\n");
-	fprintf(fp,"\n");
+  fprintf(fp, " \n\n\n***********************************************************\n");
+  fprintf(fp, " This is program IFOS3D.          \n");
+  fprintf(fp, " 3D-Adjoint Full WAveform Inversion Tool      \n");
+  fprintf(fp, " for 3D elastic FWI                                                         \n");
+  fprintf(fp, " FWI code written by  S. Butzer        \n");
+  fprintf(fp, " forward FD code  written by  T. Bohlen    \n");
+  fprintf(fp, " Geophysical Institute, Department of Physics,         \n");
+  fprintf(fp, " Institute of Technology, Karlsruhe, Germany         \n");
+  fprintf(fp, " http://www.gpi.kit.edu \n");
+  fprintf(fp, " ***********************************************************\n");
+  fprintf(fp, "\n");
 }

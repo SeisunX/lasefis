@@ -23,26 +23,23 @@
  *  ----------------------------------------------------------------------*/
 
 #include "fd.h"
-void cpmodel(int nx, int ny, int nz, float ***rho, float ***pi, float ***u,float  ***  testrho, float ***  testpi, float ***  testu){
+void cpmodel(int nx, int ny, int nz, float ***rho, float ***pi, float ***u, float ***testrho, float ***testpi, float ***testu) {
 
-		int j,i,k;
-		
-		for (j=1;j<=ny;j++){
-			for (i=1;i<=nx;i++){
-				for (k=1;k<=nz;k++){
-				  
-				 testrho[j][i][k]=0.0;
-				 testrho[j][i][k]=rho[j][i][k];
-				 
-				 testu[j][i][k]=0.0;
-				 testu[j][i][k]=u[j][i][k];
-				 
-				 testpi[j][i][k]=0.0;
-				 testpi[j][i][k]=pi[j][i][k];
-				 
-				}
-			}
-		}
-		
+  int j, i, k;
+
+  for (j = 1; j <= ny; j++) {
+    for (i = 1; i <= nx; i++) {
+      for (k = 1; k <= nz; k++) {
+
+        testrho[j][i][k] = 0.0;
+        testrho[j][i][k] = rho[j][i][k];
+
+        testu[j][i][k] = 0.0;
+        testu[j][i][k] = u[j][i][k];
+
+        testpi[j][i][k] = 0.0;
+        testpi[j][i][k] = pi[j][i][k];
+      }
+    }
+  }
 }
-

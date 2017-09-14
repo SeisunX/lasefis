@@ -32,34 +32,32 @@
 */
 
 /* derivative (time constant t0) */
-void seife_dif(double* x, int n, double dt, double tau)
-{
-    /* System generated locals */
-    int i__1;
+void seife_dif(double* x, int n, double dt, double tau) {
+  /* System generated locals */
+  int i__1;
 
-    /* Local variables */
-    static int j;
-    static double twodt;
+  /* Local variables */
+  static int j;
+  static double twodt;
 
-/*  derivative (non-recursive, non-causal, symmetric-difference) */
-    /* Parameter adjustments */
-    --x;
+  /*  derivative (non-recursive, non-causal, symmetric-difference) */
+  /* Parameter adjustments */
+  --x;
 
-    if (tau < 1.e-23) {
-	tau = 1.;
-    }
-    twodt = dt * 2. / tau;
-    i__1 = n - 2;
-    for (j = 1; j <= i__1; ++j) {
-/* L1: */
-	x[j] = (x[j + 2] - x[j]) / twodt;
-    }
-    for (j = n - 1; j >= 2; --j) {
-/* L2: */
-	x[j] = x[j - 1];
-    }
-    x[n] = x[n - 1];
+  if (tau < 1.e-23) {
+    tau = 1.;
+  }
+  twodt = dt * 2. / tau;
+  i__1 = n - 2;
+  for (j = 1; j <= i__1; ++j) {
+    /* L1: */
+    x[j] = (x[j + 2] - x[j]) / twodt;
+  }
+  for (j = n - 1; j >= 2; --j) {
+    /* L2: */
+    x[j] = x[j - 1];
+  }
+  x[n] = x[n - 1];
 } /* seife_dif */
-
 
 /* ----- END OF cseife_deriv.c ----- */

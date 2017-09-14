@@ -22,19 +22,18 @@
 * library. Lowpass or highpass filtering can be applied                                 
 * last update 2011, L. Rehor
 *  ----------------------------------------------------------------------*/
-	
 
-#include "fd.h"
 #include "cseife.h"
+#include "fd.h"
 
-void filt_seis(float ** data,int ntr, int ns, float finv){
-	  
-	  int order=4;
-	  int method=1;
-	  float fc=0.0;
-	  extern int VERBOSE;
-	 extern FILE *FP;
-	        /*
+void filt_seis(float **data, int ntr, int ns, float finv) {
+
+  int order = 4;
+  int method = 1;
+  float fc = 0.0;
+  extern int VERBOSE;
+  extern FILE *FP;
+  /*
 	        data    :       2-dimensional array containing seismograms (
 	        finv    :       corner frequency in Hz
 	        order   :       order of filter
@@ -44,39 +43,38 @@ void filt_seis(float ** data,int ntr, int ns, float finv){
 	                        1: lowpass filter
 	                        2: highpass filter
 	        */
-	                  
-	
-	        /* declaration of extern variables */
-	        extern float DT;
-	       
-	        /* declaration of local variables */
-	        int itr, j;
-	        double *seismogram, T0;
-	       
-       
-	       fc=finv;
-	        seismogram=dvector(1,ns);
-	       
-	        T0=1.0/fc;
-		
-		
-		if (VERBOSE) fprintf(FP,"  ns=%d; DT=%e; T0=%e",ns,DT,T0);
-	       
-	        for (itr=1;itr<=ntr;itr++){
-	                for (j=1;j<=ns;j++){
-	                        seismogram[j]=(double)data[itr][j];}
-              
-	                if (method==1){         /*lowpass filter*/
-	                        seife_lpb(seismogram,ns,DT,T0,order);}
-	               
-	               
-                if (method==2){         /*highpass filter*/
-	                        seife_hpb(seismogram,ns,DT,T0,order);}
-               
-                for (j=1;j<=ns;j++){
-	                        data[itr][j]=(float)seismogram[j];}
-	        }
-	       
-	        free_dvector(seismogram,1,ns);
-}
 
+  /* declaration of extern variables */
+  extern float DT;
+
+  /* declaration of local variables */
+  int itr, j;
+  double *seismogram, T0;
+
+  fc = finv;
+  seismogram = dvector(1, ns);
+
+  T0 = 1.0 / fc;
+
+  if (VERBOSE) fprintf(FP, "  ns=%d; DT=%e; T0=%e", ns, DT, T0);
+
+  for (itr = 1; itr <= ntr; itr++) {
+    for (j = 1; j <= ns; j++) {
+      seismogram[j] = (double)data[itr][j];
+    }
+
+    if (method == 1) { /*lowpass filter*/
+      seife_lpb(seismogram, ns, DT, T0, order);
+    }
+
+    if (method == 2) { /*highpass filter*/
+      seife_hpb(seismogram, ns, DT, T0, order);
+    }
+
+    for (j = 1; j <= ns; j++) {
+      data[itr][j] = (float)seismogram[j];
+    }
+  }
+
+  free_dvector(seismogram, 1, ns);
+}

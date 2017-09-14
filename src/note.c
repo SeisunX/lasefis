@@ -23,12 +23,11 @@
 
 #include "fd.h"
 
-void note(FILE *fp){
+void note(FILE *fp) {
 
-	fprintf(fp," Please note: \n");	
-	fprintf(fp," Information about overall program execution \n");
-	fprintf(fp," (numerical artefacts, accuracy, computing times etc) \n");
-	fprintf(fp," will be written by PE 0 to ");
-	fprintf(fp," standard output. \n");
-	
+  fprintf(fp, " Please note: \n");
+  fprintf(fp, " Information about overall program execution \n");
+  fprintf(fp, " (numerical artefacts, accuracy, computing times etc) \n");
+  fprintf(fp, " will be written by PE 0 to ");
+  fprintf(fp, " standard output. \n");
 }

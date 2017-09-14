@@ -22,36 +22,30 @@
  --------------------------------------------------------------------------------------*/
 
 #include "fd.h"
-void lbfgs_savegrad(float ***grad1, float ***grad2, float ***grad3,float **bfgsgrad1){
+void lbfgs_savegrad(float ***grad1, float ***grad2, float ***grad3, float **bfgsgrad1) {
 
-	int d,i,j,k;
-	extern int NX,NY, NZ, NUMPAR;
-	
-	
-		d=0;
-		for (j=1;j<=NY;j++){
-			for (i=1;i<=NX;i++){
-				for (k=1;k<=NZ;k++){
-				d++;
-						bfgsgrad1[1][d]=+grad1[j][i][k];
-						/*bfgsgrad3[1][d]=+grad3[j][i][k];*/
-					
-				}
-			}
-		}
-		if(NUMPAR>1){
-			d=NX*NY*NZ;
-			for (j=1;j<=NY;j++){
-				for (i=1;i<=NX;i++){
-					for (k=1;k<=NZ;k++){
-					d++;
-							bfgsgrad1[1][d]=+grad2[j][i][k];
-					}
-				}
-			}
-		}
+  int d, i, j, k;
+  extern int NX, NY, NZ, NUMPAR;
 
-	
-
+  d = 0;
+  for (j = 1; j <= NY; j++) {
+    for (i = 1; i <= NX; i++) {
+      for (k = 1; k <= NZ; k++) {
+        d++;
+        bfgsgrad1[1][d] = +grad1[j][i][k];
+        /*bfgsgrad3[1][d]=+grad3[j][i][k];*/
+      }
+    }
+  }
+  if (NUMPAR > 1) {
+    d = NX * NY * NZ;
+    for (j = 1; j <= NY; j++) {
+      for (i = 1; i <= NX; i++) {
+        for (k = 1; k <= NZ; k++) {
+          d++;
+          bfgsgrad1[1][d] = +grad2[j][i][k];
+        }
+      }
+    }
+  }
 }
-
