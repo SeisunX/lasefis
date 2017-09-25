@@ -1,0 +1,51 @@
+# vim: ft=python
+import os
+from rsf.proj import *
+from random import randint
+from random import seed
+
+env = Environment(ENV = os.environ)
+
+if 'RSFROOT' not in env['ENV']:
+  print("Error: please install madagascar")
+  exit(1)
+
+# compiler flags
+env['CC'] = 'gcc'
+
+# compiling flags
+env.Append(CPPPATH = [env['ENV']['RSFROOT'] + '/include'])
+env.Append(CFLAGS = ['-std=c99', '-O2', '-g', '-Wall', '-DNO_BLAS'])
+env.Append(LIBPATH = [env['ENV']['RSFROOT'] + '/lib'])
+env.Append(LIBS = ['rsf', 'm'])
+
+fd2_addr3d = env.Program('fd2_addr3d.c')
+fd2_addr1d = env.Program('fd2_addr1d.c')
+fd2_fuse = env.Program('fd2_fuse.c')
+
+### Testing
+par = {
+  'DT':0.005, 'DX':0.8, 'DY':0.8, 'DZ':0.8,
+  'NX':30, 'NY':40, 'NZ':50,
+}
+
+seed(1234)
+Flow('vx', None, 'math n1=%d n2=%d n3=%d label1=z label2=x label3=y output=0 | noise seed=%d type=n' % (par['NZ'], par['NX'], par['NY'], randint(0, 9999)))
+Flow('vy', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('vz', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('sxx', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('syy', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('szz', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('sxy', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('syz', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('sxz', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('rip', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('rjp', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+Flow('rkp', 'vx', 'math output=0 | noise seed=%d type=n' % (randint(0, 9999)))
+
+
+Flow(['fd2_addr3d.log', 'vx3', 'vy3', 'vz3'], ['./fd2_addr3d', 'vx', 'vy', 'vz', 'sxx', 'syy', 'szz', 'sxy', 'syz', 'sxz', 'rip', 'rjp', 'rkp'], '''./fd2_addr3d DT=%(DT)g DX=%(DX)g DY=%(DY)g DZ=%(DZ)g NX=%(NX)d NY=%(NY)d NZ=%(NZ)d vx=${SOURCES[1]} vy=${SOURCES[2]} vz=${SOURCES[3]} sxx=${SOURCES[4]} syy=${SOURCES[5]} szz=${SOURCES[6]} sxy=${SOURCES[7]} syz=${SOURCES[8]} sxz=${SOURCES[9]} rip=${SOURCES[10]} rjp=${SOURCES[11]} rkp=${SOURCES[12]} vx3=${TARGETS[1]} vy3=${TARGETS[2]} vz3=${TARGETS[3]} ''' % par, stdout=-1, stdin=0)
+
+Flow(['fd2_addr1d.log', 'vx1', 'vy1', 'vz1'], ['./fd2_addr1d', 'vx', 'vy', 'vz', 'sxx', 'syy', 'szz', 'sxy', 'syz', 'sxz', 'rip', 'rjp', 'rkp'], '''./fd2_addr1d DT=%(DT)g DX=%(DX)g DY=%(DY)g DZ=%(DZ)g NX=%(NX)d NY=%(NY)d NZ=%(NZ)d vx=${SOURCES[1]} vy=${SOURCES[2]} vz=${SOURCES[3]} sxx=${SOURCES[4]} syy=${SOURCES[5]} szz=${SOURCES[6]} sxy=${SOURCES[7]} syz=${SOURCES[8]} sxz=${SOURCES[9]} rip=${SOURCES[10]} rjp=${SOURCES[11]} rkp=${SOURCES[12]} vx1=${TARGETS[1]} vy1=${TARGETS[2]} vz1=${TARGETS[3]} ''' % par, stdout=-1, stdin=0)
+
+Flow(['fd2_fuse.log', 'vxf', 'vyf', 'vzf'], ['./fd2_fuse', 'vx', 'vy', 'vz', 'sxx', 'syy', 'szz', 'sxy', 'syz', 'sxz', 'rip', 'rjp', 'rkp'], '''./fd2_fuse DT=%(DT)g DX=%(DX)g DY=%(DY)g DZ=%(DZ)g NX=%(NX)d NY=%(NY)d NZ=%(NZ)d vx=${SOURCES[1]} vy=${SOURCES[2]} vz=${SOURCES[3]} sxx=${SOURCES[4]} syy=${SOURCES[5]} szz=${SOURCES[6]} sxy=${SOURCES[7]} syz=${SOURCES[8]} sxz=${SOURCES[9]} rip=${SOURCES[10]} rjp=${SOURCES[11]} rkp=${SOURCES[12]} vxf=${TARGETS[1]} vyf=${TARGETS[2]} vzf=${TARGETS[3]} ''' % par, stdout=-1, stdin=0)
